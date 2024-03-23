@@ -1,18 +1,24 @@
 // importe la bdd
 const db = require("../db/connect_bdd");
+const bcrypt = require("bcrypt");
 // début creer user
 module.exports.usercreate = async (req, res) => {
   //recupérations des données
-  const { email, password, first_name, last_name, phone_number } = req.body;
+  let { email, password, first_name, last_name, phone_number } = req.body;
   // création de l'amin par défaut a false
   const is_admin = false;
-
   // vérification des données  on verifie que les champps de la requettes ne sont pas vide
   if (!email || !password || !first_name || !last_name || !phone_number) {
     return res.status(404).json({
       message: "remplissez tous les champs",
     });
   }
+
+  // début criptage de mode passe
+  const salt = await bcrypt.genSalt();
+  password = await bcrypt.hash(password, salt);
+  //fin criptage de mode passe
+
   //  je prépare ma requette pour inserrer à la  bdd
   //  requette préparer pour eviter les injections sql
   const createExecuteQuery = `INSERT INTO User (email , password, first_name, last_name,  phone_number,is_admin) 
@@ -86,7 +92,8 @@ module.exports.userput = async (req, res) => {
   // Vérifier si les nouvelles données de l'utilisateur sont fournies
   if (!email || !password || !first_name || !last_name || !phone_number) {
     return res.status(400).json({
-      message: "Veuillez fournir toutes les informations nécessaires pour la modification de l'utilisateur.",
+      message:
+        "Veuillez fournir toutes les informations nécessaires pour la modification de l'utilisateur.",
     });
   }
 
@@ -99,7 +106,7 @@ module.exports.userput = async (req, res) => {
     first_name,
     last_name,
     phone_number,
-    id // Utiliser l'ID de l'utilisateur pour identifier l'enregistrement à mettre à jour
+    id, // Utiliser l'ID de l'utilisateur pour identifier l'enregistrement à mettre à jour
   ];
 
   try {
@@ -109,7 +116,8 @@ module.exports.userput = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      message: "Une erreur est survenue lors de la modification des informations de l'utilisateur.",
+      message:
+        "Une erreur est survenue lors de la modification des informations de l'utilisateur.",
       error: error,
     });
   }
@@ -117,7 +125,6 @@ module.exports.userput = async (req, res) => {
 // Fin modifier un utilisateur
 
 /////////////////////////////////////
-
 
 //fin modifier utilisateur
 

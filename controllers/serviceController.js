@@ -3,29 +3,18 @@ const db = require("../db/connect_bdd");
 //  DÉBUT CREATION SERVICE
 
 module.exports.servicecreate = async (req, res) => {
-  const {
-    service_name,
-    description,
-    picture,
-    
-  } = req.body;
-  if (
-    !service_name||
-    !description ||
-    !picture  ) {
+  const { service_name, description } = req.body;
+  // console.log("req.file",req.files)
+  if (!service_name || !description || !req.files) {
     return res.status(404).json({
       message: "remplissez tous les champs",
     });
-  }
-
+  } // IMAGE
+  let picture = `http://127.0.0.1:3002/images/service/${req.files[0].filename}`; // Obtenir le chemin de l'image téléchargée.
+  //IMAGE
   const createExecuteQuery = `INSERT INTO Service (service_name, description, picture 
     ) VALUES (?, ?, ?)`;
-  const values = [
-    service_name, 
-    description,
-     picture,
-
-  ];
+  const values = [service_name, description, picture];
 
   try {
     await db.executeQuery(createExecuteQuery, values);
@@ -60,7 +49,7 @@ module.exports.servicegets = async (req, res) => {
 
 //  DÉBUT RECUPERATION D'UN SERVICE
 module.exports.serviceget = async (req, res) => {
-  const query = ` SELECT * FROM Car WHERE id_service = ?`;
+  const query = ` SELECT * FROM Service WHERE id_service = ?`;
   const id = req.params.id;
   const value = [id];
 
@@ -76,36 +65,31 @@ module.exports.serviceget = async (req, res) => {
     });
   }
 };
-//  FIN  RECUPERATION  D'UN SERVICE 
+//  FIN  RECUPERATION  D'UN SERVICE
 
 // DÉBUT MODIFICATION SERVICE
 module.exports.serviceput = async (req, res) => {
   const { id } = req.params; // Récupérer l'ID de car  à modifier depuis les paramètres de la requête
-  const {
-    service_name,
-     description,
-      picture,
-  } = req.body; // Récupérer les nouvelles données de service depuis le corps de la requête
+  const { service_name, description  } = req.body; // Récupérer les nouvelles données de service depuis le corps de la requête
 
-  // Vérifier si les nouvelles données de service sont fournies
-  if (
-    !service_name||
-    !description ||
-    !picture 
-  ) {
+  // Vérifier si les nouvelles données de service sont fournies  !req.files  pour faire appele à l'image
+  if (!service_name || !description || !req.files) {
     return res.status(400).json({
       message:
         "Veuillez fournir toutes les informations nécessaires pour la modification de service.",
     });
   }
+  //IMAGE
+  let picture =`http://127.0.0.1:3002/images/service/${req.files[0].filename}`; // Obtenir le chemin de l'image téléchargée.
+  //IMAGE
 
   const updateQuery = `UPDATE Service 
                          SET service_name = ?, description = ?, picture = ?
                          WHERE id_service = ?`; // Requête SQL pour mettre à jour les informations de car dans la base de données
   const values = [
     service_name,
-     description,
-      picture,
+    description,
+    picture,
     id, // Utiliser l'ID de service pour identifier l'enregistrement à mettre à jour
   ];
   try {

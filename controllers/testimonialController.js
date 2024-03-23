@@ -1,5 +1,24 @@
 const { query } = require("express");
 const db = require("../db/connect_bdd");
+
+// DÉBUT APPROBATION D'UN COMMENTAIRE
+module.exports.testimonialapprove = async (req, res) => {
+  const { id } = req.params;
+  const approveQuery = `UPDATE Testimonial SET approved = true WHERE id_testimonial = ?`;
+
+  try {
+      await db.executeQuery(approveQuery, [id] );
+    res.status(200).json({
+      message: `Le commentaire avec l'ID ${id} a été approuvé avec succès.`,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Une erreur est survenue lors de l'approbation du commentaire.",
+      error: error,
+    });
+  }
+};
+// FIN APPROBATION D'UN COMMENTAIRE
 //  DÉBUT CREATION COMMENTAIRE
 
 module.exports.testimonialcreate = async (req, res) => {
@@ -18,7 +37,8 @@ module.exports.testimonialcreate = async (req, res) => {
     ! comment ||
     !rating ||
     rating < 1 ||   // Vérification que la note est supérieure ou égale à 1
-    rating > 5     // Vérification que la note est inférieu
+    rating > 5     // Vérification que la note est inférieur
+    
   ) {
     return res.status(404).json({
       message: "remplissez tous les champs",
@@ -33,6 +53,7 @@ module.exports.testimonialcreate = async (req, res) => {
     comment, 
     rating ,
     new Date(), // on prnd la date du jour
+     false ,// la valeur par défaut pour la validation du commenraire
     
   ];
 
@@ -52,7 +73,7 @@ module.exports.testimonialcreate = async (req, res) => {
 
 //  DÉBUT RECUPERATION  TOUS LES  COMMENTAIRES
 module.exports.testimonialgets = async (req, res) => {
-  const query = "SELECT * FROM Testimonial";
+  const query = "SELECT * FROM Testimonial WHERE approved = true"; // récupérations des commentaires approuvés seulement
   try {
     const testimonials = await db.executeQuery(query);
     res.status(201).json({
